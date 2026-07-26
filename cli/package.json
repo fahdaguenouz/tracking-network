@@ -1,0 +1,11 @@
+{
+  "name": "postal-cli",
+  "version": "1.0.0",
+  "description": "Command-line interface to interact with the Postal Tracking Network",
+  "main": "cli.js",
+  "dependencies": {
+    "fabric-ca-client": "^2.2.19",
+    "fabric-network": "^2.2.19",
+    "yargs": "^17.7.2"
+  }
+}
