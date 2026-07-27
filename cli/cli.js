@@ -24,17 +24,17 @@ async function getNetworkGateway(org, username) {
     throw new Error(`Identity for user "${username}" does not exist in the wallet. Register/Enroll them first.`);
   }
 
-  const gateway = new Gateway();
+const gateway = new Gateway();
   await gateway.connect(ccp, {
     wallet,
     identity: username,
-    discovery: { enabled: true, asLocalhost: true }
+    discovery: { enabled: false, asLocalhost: true }
   });
 
   return { gateway, ccp };
 }
 
-// Commands implementation
+// Commands implementationa
 const argv = yargs(hideBin(process.argv))
   .command(
     'create-user <username> <org>',

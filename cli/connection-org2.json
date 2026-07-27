@@ -2,35 +2,45 @@
   "name": "postal-services-org2",
   "version": "1.0.0",
   "client": {
-    "organization": "Org2",
+    "organization": "Org2MSP",
     "connection": {
       "timeout": {
         "peer": {
           "endorser": "300"
-        }
+        },
+        "orderer": "300"
       }
     }
   },
   "organizations": {
-    "Org2": {
+    "Org2MSP": {
       "mspid": "Org2MSP",
-      "peers": [
-        "peer0.org2.example.com"
-      ],
-      "certificateAuthorities": [
-        "ca.org2.example.com"
-      ]
+      "peers": ["peer0.org2.example.com"],
+      "certificateAuthorities": ["ca.org2.example.com"]
     }
   },
-  "peers": {
+ "peers": {
     "peer0.org2.example.com": {
       "url": "grpcs://localhost:9051",
       "tlsCACerts": {
-        "path": "../network/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+        "path": "/home/faguenouz/Desktop/zone01/piscines/tracking-network/network/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
       },
       "grpcOptions": {
         "ssl-target-name-override": "peer0.org2.example.com",
-        "hostnameOverride": "peer0.org2.example.com"
+        "hostnameOverride": "peer0.org2.example.com",
+        "grpc.default_authority": "peer0.org2.example.com"
+      }
+    }
+  },
+  "orderers": {
+    "orderer.example.com": {
+      "url": "grpcs://localhost:7050",
+      "tlsCACerts": {
+        "path": "/home/faguenouz/Desktop/zone01/piscines/tracking-network/network/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer.example.com",
+        "hostnameOverride": "orderer.example.com"
       }
     }
   },
@@ -39,11 +49,31 @@
       "url": "https://localhost:8054",
       "caName": "ca-org2",
       "tlsCACerts": {
-        "path": "../network/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem"
+        "path": "/home/faguenouz/Desktop/zone01/piscines/tracking-network/network/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem"
       },
       "httpOptions": {
         "verify": false
       }
+    }
+  },
+  "channels": {
+    "postalservices": {
+      "orderers": ["orderer.example.com"],
+      "peers": {
+        "peer0.org2.example.com": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        },
+        "peer0.org1.example.com": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        }
+      },
+      "chaincodes": ["postal:1.0"]
     }
   }
 }
