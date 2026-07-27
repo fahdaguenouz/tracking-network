@@ -1,1 +1,18 @@
-node_modules
+# Node modules
+node_modules/
+**/node_modules/
+
+# Hyperledger Fabric Generated Crypto Material & Artifacts
+network/crypto-config/
+network/channel-artifacts/
+network/organizations/fabric-ca/org1/
+network/organizations/fabric-ca/org2/
+
+# Client Wallets (contains sensitive user enrollment keys)
+cli/wallet/
+**/wallet/
+
+# OS and Editor files
+.DS_Store
+.idea/
+*.log
