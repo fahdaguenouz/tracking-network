@@ -1,11 +1,14 @@
 #!/bin/bash
+set -euo pipefail
 
-# Ensure binaries are available, adjust path as necessary
 export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=${PWD}
 
+command -v docker >/dev/null 2>&1 || { echo "docker is not installed"; exit 1; }
+command -v docker-compose >/dev/null 2>&1 || { echo "docker-compose is not installed"; exit 1; }
+
 echo "Stopping and removing existing containers..."
-docker-compose down -v
+docker-compose down -v || true
 sudo rm -rf crypto-config channel-artifacts organizations/fabric-ca/org1/* organizations/fabric-ca/org2/*
 
 mkdir -p channel-artifacts organizations/fabric-ca/org1 organizations/fabric-ca/org2
@@ -14,9 +17,7 @@ echo "Generating crypto material..."
 cryptogen generate --config=./crypto-config.yaml --output="crypto-config"
 
 echo "Generating system genesis block and channel transaction..."
-# 1. Generate System Channel Block for the Orderer
 configtxgen -profile OrdererGenesis -outputBlock ./channel-artifacts/genesis.block -channelID system-channel
-# 2. Generate Application Channel Transaction for the Peers
 configtxgen -profile PostalServicesChannel -outputCreateChannelTx ./channel-artifacts/postalservices.tx -channelID postalservices
 
 echo "Starting network..."

@@ -24,6 +24,23 @@ The network consists of a single channel named `PostalServices` (channel ID: `po
 
 Make sure the following tools are installed in your environment:
 - **Docker** & **Docker Compose**
+
+```bash
+sudo apt update
+sudo apt install -y docker.io
+sudo systemctl enable docker --now
+docker --version
+sudo docker run hello-world
+
+sudo usermod -aG docker $USER
+newgrp docker
+
+sudo curl -SL https://github.com/docker/compose/releases/download/v5.1.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+docker-compose --version
+which docker-compose
+```
 - **Node.js** (v18 or higher)
 - **Hyperledger Fabric Binaries** (`cryptogen` and `configtxgen` in your PATH or under a folder like `../bin`).
   > If Fabric tools are not in your path, you can run the bootstrap script provided by Hyperledger Fabric to download them:
@@ -49,6 +66,9 @@ This script automates:
 3. Launch of all nodes (`orderer`, `peer0.org1`, `peer1.org1`, `peer0.org2`, `ca_org1`, `ca_org2`, and `cli`).
 4. Joining all peers to the `postalservices` channel.
 5. Packaging and installing the Node.js smart contract on all peers, approving the definition for each organization, and committing it.
+
+### Step 2: Connection Profiles
+The client application connects to the network using the `connection-org1.json` and `connection-org2.json` profiles. Because Service Discovery is disabled by default (`discovery: { enabled: false }` in `cli.js`), it relies on explicitly defining all endorsing peers in the channel configuration of the profile. Both `peer0.org1.example.com` and `peer0.org2.example.com` are required in each organization's `peers` section to successfully submit transactions that require cross-organization endorsement.
 
 ---
 
@@ -85,6 +105,9 @@ Create identities with the role of a postal employee:
 node cli.js create-user john org1
 node cli.js create-user lee org2
 ```
+> [!NOTE]
+> **Troubleshooting**: If you get an error `Identity 'john' is already registered`, but you also see `Identity for user "john" does not exist in the wallet` when running commands, it means your local `wallet/` directory was deleted while the Certificate Authority (CA) database was retained. To fix this, you must either use a new username (e.g., `john2`), or completely reset the network using `./deploy.sh down` and `./deploy.sh up`.
+
 
 #### 2. Create a New Parcel
 ```bash
@@ -106,17 +129,22 @@ node cli.js transport john org1 PARCEL001 "Mombasa Transit Hub"
 ```
 
 #### 5. Change Parcel Status
-Modify the state of the package:
+Modify the state of the package (status options: `Good`, `Damaged`, `Destroyed`):
 ```bash
 # syntax: node cli.js change-status <username> <org> <parcelId> <newStatus>
-node cli.js change-status john org1 PARCEL001 Damaged
+node cli.js change-status lee org2 PARCEL001 Damaged
 ```
 
 **Verification of State Transitions**:
-If you attempt to transition the parcel from a degraded status back to a better one (e.g. `Damaged` to `Good`), the smart contract will reject the transaction:
+If you attempt to transition the parcel from a degraded status back to a better one (e.g. `Damaged` to `Good`), the smart contract will reject the transaction. Status can only degrade.
 ```bash
-node cli.js change-status john org1 PARCEL001 Good
-# Output will display: "Error: Invalid state transition: Cannot upgrade status from Damaged to Good"
+node cli.js change-status lee org2 PARCEL001 Good
+```
+*Expected Error:*
+```text
+Failed to submit transaction: No valid responses from any peers. Errors:
+    peer=peer0.org2.example.com, status=500, message=Invalid state transition: Cannot upgrade status from Damaged to Good
+    peer=peer0.org1.example.com, status=500, message=Invalid state transition: Cannot upgrade status from Damaged to Good
 ```
 
 ---
