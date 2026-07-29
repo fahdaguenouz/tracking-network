@@ -5,6 +5,20 @@ const { Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
+function resolveCCP(ccp, baseDir) {
+  const resolvePath = (p) => (p && !path.isAbsolute(p) ? path.resolve(baseDir, p) : p);
+  for (const section of ['peers', 'orderers', 'certificateAuthorities']) {
+    if (ccp[section]) {
+      for (const key of Object.keys(ccp[section])) {
+        if (ccp[section][key].tlsCACerts && ccp[section][key].tlsCACerts.path) {
+          ccp[section][key].tlsCACerts.path = resolvePath(ccp[section][key].tlsCACerts.path);
+        }
+      }
+    }
+  }
+  return ccp;
+}
+
 async function main() {
   try {
     const org = process.argv[2];
@@ -18,11 +32,12 @@ async function main() {
     if (!fs.existsSync(ccpPath)) {
       throw new Error(`Connection profile not found at ${ccpPath}`);
     }
-    const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+    const rawCCP = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+    const ccp = resolveCCP(rawCCP, __dirname);
 
     // Create a new CA client for interacting with the CA.
     const caInfo = ccp.certificateAuthorities[`ca.${org}.example.com`];
-    const caTLSCACertsPath = path.resolve(__dirname, caInfo.tlsCACerts.path);
+    const caTLSCACertsPath = caInfo.tlsCACerts.path;
     
     let caTLSCACerts;
     if (fs.existsSync(caTLSCACertsPath)) {
@@ -34,7 +49,7 @@ async function main() {
     const ca = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
 
     // Create a new file system based wallet for managing identities.
-    const walletPath = path.join(process.cwd(), 'wallet', org);
+    const walletPath = path.join(__dirname, 'wallet', org);
     const wallet = await Wallets.newFileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);
 

@@ -23,7 +23,7 @@
     "peer0.org2.example.com": {
       "url": "grpcs://localhost:9051",
       "tlsCACerts": {
-        "path": "/home/kali/Desktop/tracking-network/network/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+        "path": "../network/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
       },
       "grpcOptions": {
         "ssl-target-name-override": "peer0.org2.example.com",
@@ -34,7 +34,7 @@
     "peer0.org1.example.com": {
       "url": "grpcs://localhost:7051",
       "tlsCACerts": {
-        "path": "/home/kali/Desktop/tracking-network/network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+        "path": "../network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
       },
       "grpcOptions": {
         "ssl-target-name-override": "peer0.org1.example.com",
@@ -46,7 +46,7 @@
     "orderer.example.com": {
       "url": "grpcs://localhost:7050",
       "tlsCACerts": {
-        "path": "/home/kali/Desktop/tracking-network/network/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+        "path": "../network/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
       },
       "grpcOptions": {
         "ssl-target-name-override": "orderer.example.com",
@@ -59,7 +59,7 @@
       "url": "https://localhost:8054",
       "caName": "ca-org2",
       "tlsCACerts": {
-        "path": "/home/kali/Desktop/tracking-network/network/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem"
+        "path": "../network/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem"
       },
       "httpOptions": {
         "verify": false

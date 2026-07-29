@@ -8,15 +8,30 @@ const path = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
+function resolveCCP(ccp, baseDir) {
+  const resolvePath = (p) => (p && !path.isAbsolute(p) ? path.resolve(baseDir, p) : p);
+  for (const section of ['peers', 'orderers', 'certificateAuthorities']) {
+    if (ccp[section]) {
+      for (const key of Object.keys(ccp[section])) {
+        if (ccp[section][key].tlsCACerts && ccp[section][key].tlsCACerts.path) {
+          ccp[section][key].tlsCACerts.path = resolvePath(ccp[section][key].tlsCACerts.path);
+        }
+      }
+    }
+  }
+  return ccp;
+}
+
 // Helper to get connection profile and wallet
 async function getNetworkGateway(org, username) {
   const ccpPath = path.resolve(__dirname, `connection-${org}.json`);
   if (!fs.existsSync(ccpPath)) {
     throw new Error(`Connection profile not found at ${ccpPath}`);
   }
-  const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+  const rawCCP = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+  const ccp = resolveCCP(rawCCP, __dirname);
 
-  const walletPath = path.join(process.cwd(), 'wallet', org);
+  const walletPath = path.join(__dirname, 'wallet', org);
   const wallet = await Wallets.newFileSystemWallet(walletPath);
 
   const identity = await wallet.get(username);
@@ -24,7 +39,7 @@ async function getNetworkGateway(org, username) {
     throw new Error(`Identity for user "${username}" does not exist in the wallet. Register/Enroll them first.`);
   }
 
-const gateway = new Gateway();
+  const gateway = new Gateway();
   await gateway.connect(ccp, {
     wallet,
     identity: username,
@@ -47,17 +62,18 @@ const argv = yargs(hideBin(process.argv))
       const { username, org } = args;
       try {
         const ccpPath = path.resolve(__dirname, `connection-${org}.json`);
-        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+        const rawCCP = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+        const ccp = resolveCCP(rawCCP, __dirname);
 
         const caInfo = ccp.certificateAuthorities[`ca.${org}.example.com`];
-        const caTLSCACertsPath = path.resolve(__dirname, caInfo.tlsCACerts.path);
+        const caTLSCACertsPath = caInfo.tlsCACerts.path;
         let caTLSCACerts;
         if (fs.existsSync(caTLSCACertsPath)) {
           caTLSCACerts = fs.readFileSync(caTLSCACertsPath);
         }
         const ca = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
 
-        const walletPath = path.join(process.cwd(), 'wallet', org);
+        const walletPath = path.join(__dirname, 'wallet', org);
         const wallet = await Wallets.newFileSystemWallet(walletPath);
 
         // Check if user already exists
